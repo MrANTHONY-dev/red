@@ -102,6 +102,7 @@ class PharosTestnet:
         self.usdt_amount = 0
         self.min_delay = 0
         self.max_delay = 0
+        self.recipients = []
 
     def clear_terminal(self):
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -158,6 +159,28 @@ class PharosTestnet:
         except Exception as e:
             self.log(f"{Fore.RED + Style.BRIGHT}Failed To Load Proxies: {e}{Style.RESET_ALL}")
             self.proxies = []
+
+    async def load_recipients(self):
+        filename = "recipients.txt"
+        try:
+            if not os.path.exists(filename):
+                self.log(f"{Fore.RED + Style.BRIGHT}File {filename} Not Found.{Style.RESET_ALL}")
+                return
+            with open(filename, 'r') as f:
+                self.recipients = [line.strip() for line in f.read().splitlines() if line.strip()]
+
+            if not self.recipients:
+                self.log(f"{Fore.RED + Style.BRIGHT}No Recipients Found.{Style.RESET_ALL}")
+                return
+
+            self.log(
+                f"{Fore.GREEN + Style.BRIGHT}Recipients Total: {Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT}{len(self.recipients)}{Style.RESET_ALL}"
+            )
+
+        except Exception as e:
+            self.log(f"{Fore.RED + Style.BRIGHT}Failed To Load Recipients: {e}{Style.RESET_ALL}")
+            self.recipients = []
 
     def check_proxy_schemes(self, proxies):
         schemes = ["http://", "https://", "socks4://", "socks5://"]
@@ -685,28 +708,30 @@ class PharosTestnet:
             try:
                 print(f"{Fore.GREEN + Style.BRIGHT}Select Option:{Style.RESET_ALL}")
                 print(f"{Fore.WHITE + Style.BRIGHT}1. Check-In - Claim PHRS Faucet{Style.RESET_ALL}")
-                print(f"{Fore.WHITE + Style.BRIGHT}2. Send To Friends{Style.RESET_ALL}")
-                print(f"{Fore.WHITE + Style.BRIGHT}3. Wrapped - Unwrapped{Style.RESET_ALL}")
-                print(f"{Fore.WHITE + Style.BRIGHT}4. Swap WPHRS - USDC - USDT{Style.RESET_ALL}")
-                print(f"{Fore.WHITE + Style.BRIGHT}5. Add Liquidity Pool{Style.RESET_ALL}")
-                print(f"{Fore.WHITE + Style.BRIGHT}6. Run All Features{Style.RESET_ALL}")
-                option = int(input(f"{Fore.BLUE + Style.BRIGHT}Choose [1/2/3/4/5/6] -> {Style.RESET_ALL}").strip())
+                print(f"{Fore.WHITE + Style.BRIGHT}2. Send To Random Address{Style.RESET_ALL}")
+                print(f"{Fore.WHITE + Style.BRIGHT}3. Send To Predefined Address{Style.RESET_ALL}")
+                print(f"{Fore.WHITE + Style.BRIGHT}4. Wrapped - Unwrapped{Style.RESET_ALL}")
+                print(f"{Fore.WHITE + Style.BRIGHT}5. Swap WPHRS - USDC - USDT{Style.RESET_ALL}")
+                print(f"{Fore.WHITE + Style.BRIGHT}6. Add Liquidity Pool{Style.RESET_ALL}")
+                print(f"{Fore.WHITE + Style.BRIGHT}7. Run All Features{Style.RESET_ALL}")
+                option = int(input(f"{Fore.BLUE + Style.BRIGHT}Choose [1/2/3/4/5/6/7] -> {Style.RESET_ALL}").strip())
 
-                if option in [1, 2, 3, 4, 5, 6]:
+                if option in [1, 2, 3, 4, 5, 6, 7]:
                     option_type = (
-                        "Check-In - Claim PHRS Faucet" if option == 1 else 
-                        "Send To Friends" if option == 2 else 
-                        "Wrapped - Unwrapped" if option == 3 else
-                        "Swap WPHRS - USDC - USDT" if option == 4 else
-                        "Add Liquidity Pool" if option == 5 else
+                        "Check-In - Claim PHRS Faucet" if option == 1 else
+                        "Send To Random Address" if option == 2 else
+                        "Send To Predefined Address" if option == 3 else
+                        "Wrapped - Unwrapped" if option == 4 else
+                        "Swap WPHRS - USDC - USDT" if option == 5 else
+                        "Add Liquidity Pool" if option == 6 else
                         "Run All Features"
                     )
                     print(f"{Fore.GREEN + Style.BRIGHT}{option_type} Selected.{Style.RESET_ALL}")
                     break
                 else:
-                    print(f"{Fore.RED + Style.BRIGHT}Please enter either 1, 2, 3, 4, 5 or 6.{Style.RESET_ALL}")
+                    print(f"{Fore.RED + Style.BRIGHT}Please enter either 1, 2, 3, 4, 5, 6 or 7.{Style.RESET_ALL}")
             except ValueError:
-                print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a number (1, 2, 3, 4, 5 or 6).{Style.RESET_ALL}")
+                print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a number (1, 2, 3, 4, 5, 6 or 7).{Style.RESET_ALL}")
 
         if option == 2:
             while True:
@@ -756,6 +781,18 @@ class PharosTestnet:
         elif option == 3:
             while True:
                 try:
+                    tx_count = int(input(f"{Fore.YELLOW + Style.BRIGHT}How Many Times Do You Want To Make a Transfer? -> {Style.RESET_ALL}").strip())
+                    if tx_count > 0:
+                        self.tx_count = tx_count
+                        break
+                    else:
+                        print(f"{Fore.RED + Style.BRIGHT}Please enter positive number.{Style.RESET_ALL}")
+                except ValueError:
+                    print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a number.{Style.RESET_ALL}")
+
+        elif option == 4:
+            while True:
+                try:
                     print(f"{Fore.GREEN + Style.BRIGHT}Select Option:{Style.RESET_ALL}")
                     print(f"{Fore.WHITE + Style.BRIGHT}1. Wrapped PHRS to WPHRS{Style.RESET_ALL}")
                     print(f"{Fore.WHITE + Style.BRIGHT}2. Unwrapped WPHRS to PHRS{Style.RESET_ALL}")
@@ -785,7 +822,7 @@ class PharosTestnet:
                 except ValueError:
                     print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a float or decimal number.{Style.RESET_ALL}")
 
-        elif option == 4:
+        elif option == 5:
             while True:
                 try:
                     swap_count = int(input(f"{Fore.YELLOW + Style.BRIGHT}How Many Times Do You Want To Make a Swap? -> {Style.RESET_ALL}").strip())
@@ -852,7 +889,7 @@ class PharosTestnet:
                 except ValueError:
                     print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a number.{Style.RESET_ALL}")
 
-        elif option == 5:
+        elif option == 6:
             while True:
                 try:
                     add_lp_count = int(input(f"{Fore.YELLOW + Style.BRIGHT}How Many Times Do You Want To Add Liquidity Pool? -> {Style.RESET_ALL}").strip())
@@ -886,7 +923,7 @@ class PharosTestnet:
                 except ValueError:
                     print(f"{Fore.RED + Style.BRIGHT}Invalid input. Enter a number.{Style.RESET_ALL}")
 
-        elif option == 6:
+        elif option == 7:
             while True:
                 try:
                     tx_count = int(input(f"{Fore.YELLOW + Style.BRIGHT}How Many Times Do You Want To Make a Transfer? -> {Style.RESET_ALL}").strip())
@@ -1481,7 +1518,7 @@ class PharosTestnet:
                 f"{Fore.RED+Style.BRIGHT} GET Eligibility Status Failed {Style.RESET_ALL}"
             )
 
-    async def process_option_2(self, account: str, address: str, use_proxy: bool):
+    async def process_option_2(self, account: str, address: str, use_proxy: bool, predefined_recipients: bool = False):
         self.log(f"{Fore.CYAN+Style.BRIGHT}Transfer  :{Style.RESET_ALL}                       ")
         await asyncio.sleep(5)
 
@@ -1491,7 +1528,14 @@ class PharosTestnet:
                 f"{Fore.GREEN+Style.BRIGHT}Tx - {i+1}{Style.RESET_ALL}                       "
             )
 
-            receiver = self.generate_random_receiver()
+            if predefined_recipients:
+                if not self.recipients:
+                    self.log(f"{Fore.RED + Style.BRIGHT}No recipients loaded. Aborting.{Style.RESET_ALL}")
+                    break
+                receiver = random.choice(self.recipients)
+                self.tx_amount = round(random.uniform(0.0001, 0.0005), 8)
+            else:
+                receiver = self.generate_random_receiver()
 
             balance = await self.get_token_balance(address, "PHRS", use_proxy)
             self.log(
@@ -1517,7 +1561,10 @@ class PharosTestnet:
             await self.process_perform_transfer(account, address, receiver, use_proxy)
             await self.print_timer()
 
-    async def process_option_3(self, account: str, address: str, use_proxy):
+    async def process_option_3(self, account: str, address: str, use_proxy: bool):
+        await self.process_option_2(account, address, use_proxy, predefined_recipients=True)
+
+    async def process_option_4(self, account: str, address: str, use_proxy: bool):
         if self.wrap_option == 1:
             self.log(f"{Fore.CYAN+Style.BRIGHT}Wrapped   :{Style.RESET_ALL}                      ")
 
@@ -1562,7 +1609,7 @@ class PharosTestnet:
             
             await self.process_perform_unwrapped(account, address, use_proxy)
 
-    async def process_option_4(self, account: str, address: str, use_proxy: bool):
+    async def process_option_5(self, account: str, address: str, use_proxy: bool):
         self.log(f"{Fore.CYAN+Style.BRIGHT}Swap      :{Style.RESET_ALL}                       ")
 
         for i in range(self.swap_count):
@@ -1601,7 +1648,7 @@ class PharosTestnet:
             await self.process_perform_swap(account, address, from_token, to_token, from_ticker, to_ticker, swap_amount, use_proxy)
             await self.print_timer()
 
-    async def process_option_5(self, account: str, address: str, use_proxy: bool):
+    async def process_option_6(self, account: str, address: str, use_proxy: bool):
         self.log(f"{Fore.CYAN+Style.BRIGHT}Liquidity :{Style.RESET_ALL}                       ")
 
         for i in range(self.add_lp_count):
@@ -1672,35 +1719,43 @@ class PharosTestnet:
             elif option == 2:
                 self.log(
                     f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
-                    f"{Fore.BLUE+Style.BRIGHT} Send To Friends {Style.RESET_ALL}"
+                    f"{Fore.BLUE+Style.BRIGHT} Send To Random Address {Style.RESET_ALL}"
                 )
 
                 await self.process_option_2(account, address, use_proxy)
 
             elif option == 3:
+                self.log(
+                    f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
+                    f"{Fore.BLUE+Style.BRIGHT} Send To Predefined Address {Style.RESET_ALL}"
+                )
+
+                await self.process_option_3(account, address, use_proxy)
+
+            elif option == 4:
                 wrap_type = "Wrap PHRS to WPHRS" if self.wrap_amount == 1 else "Unwrap WPHRS to PHRS"
                 self.log(
                     f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
                     f"{Fore.BLUE+Style.BRIGHT} {wrap_type} {Style.RESET_ALL}"
                 )
                 
-                await self.process_option_3(account, address, use_proxy)
-
-            elif option == 4:
-                self.log(
-                    f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
-                    f"{Fore.BLUE+Style.BRIGHT} Swap WPHRS - USDC - USDT  {Style.RESET_ALL}"
-                )
-
                 await self.process_option_4(account, address, use_proxy)
 
             elif option == 5:
                 self.log(
                     f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
-                    f"{Fore.BLUE+Style.BRIGHT} Add Liquidity Pool {Style.RESET_ALL}"
+                    f"{Fore.BLUE+Style.BRIGHT} Swap WPHRS - USDC - USDT  {Style.RESET_ALL}"
                 )
 
                 await self.process_option_5(account, address, use_proxy)
+
+            elif option == 6:
+                self.log(
+                    f"{Fore.CYAN+Style.BRIGHT}Option    :{Style.RESET_ALL}"
+                    f"{Fore.BLUE+Style.BRIGHT} Add Liquidity Pool {Style.RESET_ALL}"
+                )
+
+                await self.process_option_6(account, address, use_proxy)
 
             else:
                 self.log(
@@ -1714,13 +1769,13 @@ class PharosTestnet:
                 await self.process_option_2(account, address, use_proxy)
                 await asyncio.sleep(5)
 
-                await self.process_option_3(account, address, use_proxy)
-                await asyncio.sleep(5)
-                
                 await self.process_option_4(account, address, use_proxy)
                 await asyncio.sleep(5)
-
+                
                 await self.process_option_5(account, address, use_proxy)
+                await asyncio.sleep(5)
+
+                await self.process_option_6(account, address, use_proxy)
                 await asyncio.sleep(5)
 
     async def main(self):
@@ -1744,6 +1799,9 @@ class PharosTestnet:
 
                 if use_proxy:
                     await self.load_proxies(use_proxy_choice)
+
+                if option == 3:
+                    await self.load_recipients()
                 
                 separator = "=" * 25
                 for account in accounts:
